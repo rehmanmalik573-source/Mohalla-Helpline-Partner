@@ -1,32 +1,27 @@
 ```tsx
 import React, { useState } from 'react';
-import { 
-  Menu, 
-  MapPin, 
-  ChevronDown, 
-  Bell, 
-  X, 
-  Check, 
-  PhoneCall, 
-  ShieldCheck, 
-  Home, 
-  ClipboardList, 
-  User, 
-  HelpCircle, 
-  CreditCard, 
-  Star, 
-  Info, 
-  Settings, 
-  LogOut, 
-  Users, 
-  Wrench, 
-  Power,
+import {
+  Menu,
+  Bell,
+  X,
+  PhoneCall,
+  ShieldCheck,
+  Home,
+  ClipboardList,
+  CreditCard,
+  Star,
+  Info,
+  Settings,
+  LogOut,
+  Users,
   ArrowRight,
-  Clock,
-  XCircle,
-  Sparkles
 } from 'lucide-react';
-import { Language, ServiceRequest, Provider, CustomerNotification } from '../types';
+import {
+  Language,
+  ServiceRequest,
+  Provider,
+  CustomerNotification,
+} from '../types';
 import { translations } from '../data/translations';
 
 interface HeaderProps {
@@ -79,13 +74,15 @@ export const Header: React.FC<HeaderProps> = ({
   const t = translations[language];
 
   const activeRequestsCount = requests.filter(
-    r => r.status !== 'completed' && r.status !== 'cancelled'
+    (r) => r.status !== 'completed' && r.status !== 'cancelled'
   ).length;
 
-  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
+  const unreadNotificationsCount = notifications.filter(
+    (n) => !n.read
+  ).length;
 
-  const isRejected = provider?.verificationStatus === 'rejected';
   const isPending = provider?.verificationStatus === 'pending';
+
   const isVerified = Boolean(
     provider?.verificationStatus === 'verified' && provider?.isVerified
   );
@@ -102,6 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             id="mobile-menu-toggle-btn"
+            type="button"
             onClick={() => setIsMobileMenuOpen(true)}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-white bg-emerald-800/60 hover:bg-emerald-800 border border-emerald-600/50 transition-colors cursor-pointer shrink-0"
             aria-label="Partner Menu"
@@ -125,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Language Switcher & Notification */}
+        {/* Right: Language & Notification */}
         <div className="flex items-center gap-2 shrink-0">
 
           {/* Language Switcher */}
@@ -152,6 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               id="notification-bell-btn"
+              type="button"
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative w-9 h-9 rounded-xl bg-emerald-800/60 hover:bg-emerald-800 border border-emerald-600/50 text-white flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Partner Notifications"
@@ -183,6 +182,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     <div className="flex items-center gap-1.5 font-black text-xs text-slate-900">
                       <Bell className="w-3.5 h-3.5 text-emerald-600" />
+
                       <span>
                         {language === 'hi'
                           ? 'पार्टनर नोटिफिकेशन्स'
@@ -192,10 +192,12 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {unreadNotificationsCount > 0 && (
                       <button
-                        onClick={() =>
-                          onMarkNotificationRead &&
-                          onMarkNotificationRead()
-                        }
+                        type="button"
+                        onClick={() => {
+                          if (onMarkNotificationRead) {
+                            onMarkNotificationRead();
+                          }
+                        }}
                         className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer"
                       >
                         {language === 'hi'
@@ -215,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
                           : 'No new notifications.'}
                       </p>
                     ) : (
-                      notifications.map(n => (
+                      notifications.map((n) => (
                         <div
                           key={n.id}
                           onClick={() => {
@@ -310,6 +312,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Close Button */}
               <button
                 id="close-hamburger-menu-btn"
+                type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-800 hover:text-rose-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs border border-slate-200"
                 aria-label="Close Menu"
@@ -384,11 +387,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               </div>
 
-              {/* PROVIDER MENU ITEMS */}
+              {/* Provider Menu Items */}
               <div className="space-y-0.5 text-xs font-bold text-slate-700">
 
                 {/* Dashboard */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onNavigate('provider_dashboard');
@@ -396,6 +400,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
                   <Home className="w-4 h-4 text-amber-600" />
+
                   <span>
                     {language === 'hi'
                       ? 'पार्टनर डैशबोर्ड'
@@ -405,6 +410,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* Service Requests */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenRequestsTab();
@@ -414,6 +420,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                   <div className="flex items-center gap-3">
                     <ClipboardList className="w-4 h-4 text-amber-600" />
+
                     <span>{t.serviceRequests}</span>
                   </div>
 
@@ -427,6 +434,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* Notifications */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     setShowNotifications(true);
@@ -436,6 +444,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                   <div className="flex items-center gap-3">
                     <Bell className="w-4 h-4 text-amber-600" />
+
                     <span>
                       {language === 'hi'
                         ? 'सूचनाएं'
@@ -453,6 +462,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* Verification */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenProfile();
@@ -460,11 +470,13 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-emerald-700 cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
+
                   <span>{t.verificationStatus}</span>
                 </button>
 
                 {/* Earnings & Payments */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenPayments();
@@ -472,11 +484,13 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
                   <CreditCard className="w-4 h-4 text-emerald-600" />
+
                   <span>{t.earningsPayments}</span>
                 </button>
 
                 {/* Ratings & Reviews */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenReviews();
@@ -484,11 +498,13 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
                   <Star className="w-4 h-4 text-amber-500" />
+
                   <span>{t.ratingsReviews}</span>
                 </button>
 
                 {/* Register Partner */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenJoinPro();
@@ -502,22 +518,23 @@ export const Header: React.FC<HeaderProps> = ({
                       ? 'नया कारीगर रजिस्ट्रेशन / प्रोफाइल'
                       : 'Switch / Register Partner'}
                   </span>
-
                 </button>
 
                 {/* Help & Support */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenHelpSupport();
                   }}
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <HelpCircle className="w-4 h-4 text-blue-600" />
+                  <span className="text-blue-600 text-base">?</span>
+
                   <span>{t.helpSupport}</span>
                 </button>
 
-                {/* 24x7 Partner Helpline */}
+                {/* Partner Helpline */}
                 <a
                   href="tel:18002026000"
                   className="w-full text-left px-3 py-2 rounded-xl bg-amber-50/80 border border-amber-200/80 hover:bg-amber-100/80 flex items-center justify-between text-slate-900 cursor-pointer my-1"
@@ -549,6 +566,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* About */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenAbout();
@@ -556,11 +574,13 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
                   <Info className="w-4 h-4 text-slate-500" />
+
                   <span>{t.aboutApp}</span>
                 </button>
 
                 {/* Settings */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onOpenSettings();
@@ -568,11 +588,13 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
                   <Settings className="w-4 h-4 text-slate-600" />
+
                   <span>{t.settings}</span>
                 </button>
 
                 {/* Logout */}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     onLogout();
@@ -580,6 +602,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 flex items-center gap-3 text-rose-600 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4 text-rose-500" />
+
                   <span>{t.logout}</span>
                 </button>
 
