@@ -1,0 +1,8 @@
+{
+  "name": "Mohalla Helpline Partner",
+  "description": "Dedicated app for Mohalla Helpline service providers to manage profiles, verification, service requests, jobs, availability, earnings, notifications and customer requests.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
