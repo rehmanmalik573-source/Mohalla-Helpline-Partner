@@ -236,7 +236,7 @@ export const Header: React.FC<HeaderProps> = ({
                               ? 'bg-slate-50 border-slate-100 text-slate-600'
                               : 'bg-emerald-50/70 border-emerald-200 text-slate-900 font-semibold'
                           }`}
-                        >
+                        > 
 
                           <div className="font-bold flex items-center justify-between gap-1 text-slate-900">
 
