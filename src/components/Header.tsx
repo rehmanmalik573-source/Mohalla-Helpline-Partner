@@ -43,7 +43,7 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onLogout: () => void;
   onToggleOnline: () => void;
-  onMarkNotificationRead?: (id?: string) => void;
+  onMarkNotificationRead?: (id?: string) => void; 
 }
 
 export const Header: React.FC<HeaderProps> = ({
