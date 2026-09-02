@@ -35,7 +35,10 @@ interface ProviderDashboardViewProps {
   requests: ServiceRequest[];
   categories: Category[];
   language: Language;
-  onUpdateStatus: (requestId: string, newStatus: RequestStatus) => void;
+  onUpdateStatus: (
+    requestId: string,
+    newStatus: RequestStatus
+  ) => void;
   onUpdateProvider: (updatedPro: Partial<Provider>) => void;
   onSimulateNewRequest?: () => void;
   onOpenHelpSupport: () => void;
@@ -72,8 +75,22 @@ export const ProviderDashboardView: React.FC<
   const isPending = provider?.verificationStatus === 'pending';
 
   const isVerified = Boolean(
-    provider?.verificationStatus === 'verified' && provider?.isVerified
+    provider?.verificationStatus === 'verified' &&
+      provider?.isVerified
   );
+
+  /*
+   * IMPORTANT:
+   * Availability state is controlled explicitly here.
+   *
+   * true  = ONLINE
+   * false = OFFLINE
+   *
+   * The toggle is forced to LTR so its thumb always moves:
+   * OFFLINE -> LEFT
+   * ONLINE  -> RIGHT
+   */
+  const isOnline = provider?.isAvailableNow === true;
 
   const myCategoryRequests = useMemo(() => {
     return requests.filter(
@@ -115,7 +132,8 @@ export const ProviderDashboardView: React.FC<
   const completedEarnings = useMemo(
     () =>
       completedJobs.reduce(
-        (total, request) => total + (Number(request.estimatedPrice) || 0),
+        (total, request) =>
+          total + (Number(request.estimatedPrice) || 0),
         0
       ),
     [completedJobs]
@@ -164,14 +182,21 @@ export const ProviderDashboardView: React.FC<
       : 0;
 
   const reviewCount =
-    provider?.reviewCount !== undefined && provider?.reviewCount !== null
+    provider?.reviewCount !== undefined &&
+    provider?.reviewCount !== null
       ? provider.reviewCount
       : 0;
 
   /*
    * Bilingual request-detail helpers.
-   * Hindi uses Hindi value first and English as fallback.
-   * English uses English value first and Hindi as fallback.
+   *
+   * Hindi:
+   *   Hindi value first
+   *   English fallback
+   *
+   * English:
+   *   English value first
+   *   Hindi fallback
    */
   const getRequestServiceType = (request: ServiceRequest) =>
     language === 'hi'
@@ -224,6 +249,40 @@ export const ProviderDashboardView: React.FC<
     window.setTimeout(() => {
       setIsRefreshing(false);
     }, 600);
+  };
+
+  /*
+   * Availability toggle.
+   *
+   * Online  -> true
+   * Offline -> false
+   *
+   * This deliberately uses the opposite of the current state.
+   */
+  const handleAvailabilityToggle = () => {
+    if (isRejected) {
+      alert(
+        language === 'hi'
+          ? 'सत्यापन अस्वीकृत है। कृपया अपने दस्तावेज पुनः सबमिट करें।'
+          : 'Verification is rejected. Please re-submit your documents.'
+      );
+      return;
+    }
+
+    if (isPending) {
+      alert(
+        language === 'hi'
+          ? 'आपका KYC अभी सत्यापन में है। स्वीकृति के बाद आप ऑनलाइन हो सकेंगे।'
+          : 'Your KYC is under review. You can go online after approval.'
+      );
+      return;
+    }
+
+    const nextOnlineState = !isOnline;
+
+    onUpdateProvider({
+      isAvailableNow: nextOnlineState,
+    });
   };
 
   const openRequests = (
@@ -287,8 +346,11 @@ export const ProviderDashboardView: React.FC<
       id="mohalla-partner-dashboard-container"
       className="max-w-md mx-auto min-h-screen bg-[#F6F8F7] pb-28 text-slate-900 font-sans"
     >
+      {/* ================= HEADER ================= */}
+
       <section className="relative overflow-hidden bg-gradient-to-br from-[#064E3B] via-[#065F46] to-[#047857] px-4 pt-5 pb-20 text-white">
         <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-emerald-300/10 blur-2xl" />
+
         <div className="absolute -left-20 bottom-0 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
 
         <div className="relative flex items-start justify-between gap-3">
@@ -332,13 +394,15 @@ export const ProviderDashboardView: React.FC<
           </button>
         </div>
 
+        {/* ================= AVAILABILITY ================= */}
+
         <div className="relative mt-5 flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur-sm">
           <div className="flex items-center gap-2.5">
             <span
               className={`h-2.5 w-2.5 rounded-full ${
                 isRejected
                   ? 'bg-rose-400'
-                  : provider?.isAvailableNow
+                  : isOnline
                     ? 'bg-emerald-300 animate-pulse'
                     : 'bg-slate-300'
               }`}
@@ -356,7 +420,7 @@ export const ProviderDashboardView: React.FC<
                   ? language === 'hi'
                     ? 'खाता अस्वीकृत'
                     : 'Account Rejected'
-                  : provider?.isAvailableNow
+                  : isOnline
                     ? language === 'hi'
                       ? 'ऑनलाइन — रिक्वेस्ट लेने के लिए तैयार'
                       : 'Online — Ready for requests'
@@ -367,51 +431,44 @@ export const ProviderDashboardView: React.FC<
             </div>
           </div>
 
+          {/* 
+            IMPORTANT:
+            direction:ltr guarantees:
+            OFFLINE = thumb LEFT
+            ONLINE  = thumb RIGHT
+          */}
           <button
             type="button"
-            onClick={() => {
-              if (isRejected) {
-                alert(
-                  language === 'hi'
-                    ? 'सत्यापन अस्वीकृत है। कृपया अपने दस्तावेज पुनः सबमिट करें।'
-                    : 'Verification is rejected. Please re-submit your documents.'
-                );
-                return;
-              }
-
-              if (isPending) {
-                alert(
-                  language === 'hi'
-                    ? 'आपका KYC अभी सत्यापन में है। स्वीकृति के बाद आप ऑनलाइन हो सकेंगे।'
-                    : 'Your KYC is under review. You can go online after approval.'
-                );
-                return;
-              }
-
-              onUpdateProvider({
-                isAvailableNow: !provider.isAvailableNow,
-              });
-            }}
+            onClick={handleAvailabilityToggle}
             disabled={isRejected}
-            className={`relative h-7 w-12 shrink-0 rounded-full transition-all ${
+            dir="ltr"
+            className={`relative h-7 w-12 shrink-0 overflow-hidden rounded-full transition-all duration-200 ${
               isRejected
                 ? 'cursor-not-allowed bg-white/20 opacity-60'
-                : provider?.isAvailableNow
+                : isOnline
                   ? 'bg-emerald-300'
                   : 'bg-white/25'
             }`}
-            aria-label="Toggle Online Status"
+            style={{ direction: 'ltr' }}
+            aria-label={
+              isOnline
+                ? 'Set availability offline'
+                : 'Set availability online'
+            }
+            aria-pressed={isOnline}
           >
             <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
-                provider?.isAvailableNow
-                  ? 'translate-x-6'
-                  : 'translate-x-1'
+              className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${
+                isOnline
+                  ? 'translate-x-5'
+                  : 'translate-x-0'
               }`}
             />
           </button>
         </div>
       </section>
+
+      {/* ================= PROFILE CARD ================= */}
 
       <section className="-mt-12 px-4">
         <div
@@ -529,6 +586,8 @@ export const ProviderDashboardView: React.FC<
         </div>
       </section>
 
+      {/* ================= KYC ================= */}
+
       <section className="space-y-3 px-4 pt-4">
         {isRejected && (
           <div
@@ -607,6 +666,8 @@ export const ProviderDashboardView: React.FC<
           </div>
         )}
       </section>
+
+      {/* ================= TODAY OVERVIEW ================= */}
 
       <section className="px-4 pt-5">
         <div className="mb-2.5 flex items-end justify-between">
@@ -713,6 +774,8 @@ export const ProviderDashboardView: React.FC<
         </div>
       </section>
 
+      {/* ================= NEW REQUEST ================= */}
+
       {pendingRequests.length > 0 && (
         <section className="px-4 pt-5">
           <div className="overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-sm">
@@ -795,6 +858,7 @@ export const ProviderDashboardView: React.FC<
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-emerald-600 py-3 text-xs font-black text-white shadow-sm transition-colors hover:bg-emerald-700"
                     >
                       <CheckCircle2 className="h-4 w-4" />
+
                       {language === 'hi'
                         ? 'स्वीकार करें'
                         : 'Accept'}
@@ -816,6 +880,8 @@ export const ProviderDashboardView: React.FC<
           </div>
         </section>
       )}
+
+      {/* ================= EARNINGS ================= */}
 
       <section className="px-4 pt-5">
         <button
@@ -856,6 +922,8 @@ export const ProviderDashboardView: React.FC<
           </div>
         </button>
       </section>
+
+      {/* ================= QUICK ACTIONS ================= */}
 
       <section className="px-4 pt-5">
         <h3 className="mb-2.5 text-sm font-black text-slate-900">
@@ -921,6 +989,8 @@ export const ProviderDashboardView: React.FC<
         </div>
       </section>
 
+      {/* ================= REQUEST MANAGEMENT ================= */}
+
       <section
         id="partner-requests-section"
         className="px-4 pt-6"
@@ -947,7 +1017,10 @@ export const ProviderDashboardView: React.FC<
               ['all', language === 'hi' ? 'सभी' : 'All'],
               ['pending', language === 'hi' ? 'नई' : 'New'],
               ['active', language === 'hi' ? 'चालू' : 'Active'],
-              ['completed', language === 'hi' ? 'पूर्ण' : 'Completed'],
+              [
+                'completed',
+                language === 'hi' ? 'पूर्ण' : 'Completed',
+              ],
             ] as const
           ).map(([filter, label]) => (
             <button
@@ -1003,8 +1076,11 @@ export const ProviderDashboardView: React.FC<
                 request.status === 'on_the_way' ||
                 request.status === 'service_started';
 
-              const isCompleted = request.status === 'completed';
-              const isCancelled = request.status === 'cancelled';
+              const isCompleted =
+                request.status === 'completed';
+
+              const isCancelled =
+                request.status === 'cancelled';
 
               return (
                 <article
@@ -1045,7 +1121,8 @@ export const ProviderDashboardView: React.FC<
                           : request.status === 'cancelled'
                             ? 'bg-rose-100 text-rose-700'
                             : request.status === 'requested' ||
-                                request.status === 'provider_found'
+                                request.status ===
+                                  'provider_found'
                               ? 'bg-amber-100 text-amber-800'
                               : 'bg-blue-100 text-blue-800'
                       }`}
@@ -1067,7 +1144,8 @@ export const ProviderDashboardView: React.FC<
                       <Calendar className="h-3.5 w-3.5 shrink-0 text-blue-500" />
 
                       <span className="truncate text-[10px] font-bold text-slate-700">
-                        {getRequestDate(request)} • {getRequestTime(request)}
+                        {getRequestDate(request)} •{' '}
+                        {getRequestTime(request)}
                       </span>
                     </div>
                   </div>
@@ -1121,6 +1199,7 @@ export const ProviderDashboardView: React.FC<
                           className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-emerald-600 py-3 text-xs font-black text-white hover:bg-emerald-700"
                         >
                           <CheckCircle2 className="h-4 w-4" />
+
                           {language === 'hi'
                             ? 'स्वीकार करें'
                             : 'Accept'}
@@ -1153,6 +1232,7 @@ export const ProviderDashboardView: React.FC<
                         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 py-3 text-xs font-black text-white hover:bg-amber-600"
                       >
                         <MapPin className="h-4 w-4" />
+
                         {language === 'hi'
                           ? 'रास्ते में निकलें'
                           : 'Mark On The Way'}
@@ -1169,11 +1249,13 @@ export const ProviderDashboardView: React.FC<
                         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3 text-xs font-black text-white hover:bg-blue-700"
                       >
                         <Zap className="h-4 w-4" />
+
                         {language === 'hi'
                           ? 'काम शुरू करें'
                           : 'Start Service'}
                       </button>
-                    ) : request.status === 'service_started' ? (
+                    ) : request.status ===
+                      'service_started' ? (
                       <button
                         type="button"
                         onClick={() =>
@@ -1185,6 +1267,7 @@ export const ProviderDashboardView: React.FC<
                         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3 text-xs font-black text-white hover:bg-emerald-700"
                       >
                         <CheckCircle2 className="h-4 w-4" />
+
                         {language === 'hi'
                           ? `काम पूरा करें • ₹${request.estimatedPrice}`
                           : `Complete Job • ₹${request.estimatedPrice}`}
@@ -1192,6 +1275,7 @@ export const ProviderDashboardView: React.FC<
                     ) : isCompleted ? (
                       <div className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-emerald-200 bg-emerald-50 py-2.5 text-xs font-black text-emerald-800">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+
                         {language === 'hi'
                           ? `काम पूरा • ₹${request.estimatedPrice}`
                           : `Completed • ₹${request.estimatedPrice}`}
@@ -1199,6 +1283,7 @@ export const ProviderDashboardView: React.FC<
                     ) : isCancelled ? (
                       <div className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 py-2.5 text-xs font-black text-rose-700">
                         <XCircle className="h-4 w-4 text-rose-500" />
+
                         {language === 'hi'
                           ? 'जॉब रद्द'
                           : 'Cancelled'}
@@ -1211,6 +1296,8 @@ export const ProviderDashboardView: React.FC<
           )}
         </div>
       </section>
+
+      {/* ================= RATING ================= */}
 
       <section className="px-4 pt-6">
         <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
@@ -1265,6 +1352,8 @@ export const ProviderDashboardView: React.FC<
           </div>
         </div>
       </section>
+
+      {/* ================= SUPPORT ================= */}
 
       <section className="px-4 pt-5">
         <button
