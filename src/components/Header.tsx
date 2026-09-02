@@ -1,4 +1,3 @@
-```tsx
 import React, { useState } from 'react';
 import {
   Menu,
@@ -16,12 +15,14 @@ import {
   Users,
   ArrowRight,
 } from 'lucide-react';
+
 import {
   Language,
   ServiceRequest,
   Provider,
   CustomerNotification,
 } from '../types';
+
 import { translations } from '../data/translations';
 
 interface HeaderProps {
@@ -43,14 +44,14 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onLogout: () => void;
   onToggleOnline: () => void;
-  onMarkNotificationRead?: (id?: string) => void; 
+  onMarkNotificationRead?: (id?: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   language,
   onToggleLanguage,
-  currentLocation,
-  onLocationChange,
+  currentLocation: _currentLocation,
+  onLocationChange: _onLocationChange,
   requests,
   provider,
   notifications,
@@ -64,45 +65,77 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAbout,
   onOpenSettings,
   onLogout,
-  onToggleOnline,
+  onToggleOnline: _onToggleOnline,
   onMarkNotificationRead,
 }) => {
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
   const t = translations[language];
 
   const activeRequestsCount = requests.filter(
-    (r) => r.status !== 'completed' && r.status !== 'cancelled'
+    (request) =>
+      request.status !== 'completed' &&
+      request.status !== 'cancelled'
   ).length;
 
   const unreadNotificationsCount = notifications.filter(
-    (n) => !n.read
+    (notification) => !notification.read
   ).length;
 
-  const isPending = provider?.verificationStatus === 'pending';
+  const isPending =
+    provider?.verificationStatus === 'pending';
 
   const isVerified = Boolean(
-    provider?.verificationStatus === 'verified' && provider?.isVerified
+    provider?.verificationStatus === 'verified' &&
+      provider?.isVerified
   );
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  const closeNotifications = () => {
+    setShowNotifications(false);
+  };
+
+  const notificationItemClass = (read: boolean) =>
+    [
+      'p-2.5',
+      'rounded-2xl',
+      'text-xs',
+      'transition-colors',
+      'cursor-pointer',
+      'border',
+      read
+        ? 'bg-slate-50 border-slate-100 text-slate-600'
+        : 'bg-emerald-50/70 border-emerald-200 text-slate-900 font-semibold',
+    ].join(' ');
 
   return (
     <header
       id="mohalla-partner-header"
       className="sticky top-0 z-40 bg-[#065F46] text-white shadow-md"
     >
+      {/* =========================
+          TOP HEADER
+      ========================== */}
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between gap-3">
 
-        {/* Left: Hamburger & Greeting */}
+        {/* LEFT SIDE */}
         <div className="flex items-center gap-3 min-w-0">
 
+          {/* Hamburger */}
           <button
             id="mobile-menu-toggle-btn"
             type="button"
-            onClick={() => setIsMobileMenuOpen(true)}
+            onClick={() => {
+              closeNotifications();
+              setIsMobileMenuOpen(true);
+            }}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-white bg-emerald-800/60 hover:bg-emerald-800 border border-emerald-600/50 transition-colors cursor-pointer shrink-0"
             aria-label="Partner Menu"
+            aria-expanded={isMobileMenuOpen}
           >
             <Menu className="w-5 h-5 text-white" />
           </button>
@@ -118,12 +151,14 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="text-[11px] text-emerald-100/90 font-semibold truncate">
-              {language === 'hi' ? 'सुप्रभात!' : 'Good Morning!'}
+              {language === 'hi'
+                ? 'सुप्रभात!'
+                : 'Good Morning!'}
             </div>
           </div>
         </div>
 
-        {/* Right: Language & Notification */}
+        {/* RIGHT SIDE */}
         <div className="flex items-center gap-2 shrink-0">
 
           {/* Language Switcher */}
@@ -131,7 +166,9 @@ export const Header: React.FC<HeaderProps> = ({
             id="header-lang-toggle-btn"
             type="button"
             onClick={() =>
-              onToggleLanguage(language === 'hi' ? 'en' : 'hi')
+              onToggleLanguage(
+                language === 'hi' ? 'en' : 'hi'
+              )
             }
             className="px-2.5 py-1 rounded-full bg-emerald-800/80 hover:bg-emerald-700/80 border border-emerald-500/60 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs flex items-center gap-1"
             title={
@@ -141,24 +178,31 @@ export const Header: React.FC<HeaderProps> = ({
             }
           >
             <span>
-              {language === 'hi' ? 'हिंदी' : 'English'}
+              {language === 'hi'
+                ? 'हिंदी'
+                : 'English'}
             </span>
           </button>
 
-          {/* Notification Bell */}
+          {/* Notifications */}
           <div className="relative">
 
             <button
               id="notification-bell-btn"
               type="button"
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => {
+                setShowNotifications(
+                  (previous) => !previous
+                );
+              }}
               className="relative w-9 h-9 rounded-xl bg-emerald-800/60 hover:bg-emerald-800 border border-emerald-600/50 text-white flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Partner Notifications"
+              aria-expanded={showNotifications}
             >
               <Bell className="w-4 h-4 text-white" />
 
               {unreadNotificationsCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-[#065F46] animate-pulse">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-[#065F46]">
                   {unreadNotificationsCount}
                 </span>
               )}
@@ -167,17 +211,28 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Notifications Popup */}
             {showNotifications && (
               <>
+                {/* Outside click layer */}
                 <div
                   className="fixed inset-0 z-40"
-                  onClick={() => setShowNotifications(false)}
+                  onClick={closeNotifications}
+                  aria-hidden="true"
                 />
 
                 <div
                   id="notifications-popup"
-                  className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 p-3.5 z-50 space-y-2.5 animate-in fade-in zoom-in-95 duration-150"
-                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 p-3.5 z-50 space-y-2.5"
+                  onClick={(event) =>
+                    event.stopPropagation()
+                  }
+                  role="dialog"
+                  aria-label={
+                    language === 'hi'
+                      ? 'पार्टनर नोटिफिकेशन्स'
+                      : 'Partner Notifications'
+                  }
                 >
 
+                  {/* Popup Header */}
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
 
                     <div className="flex items-center gap-1.5 font-black text-xs text-slate-900">
@@ -205,9 +260,9 @@ export const Header: React.FC<HeaderProps> = ({
                           : 'Mark all read'}
                       </button>
                     )}
-
                   </div>
 
+                  {/* Notification List */}
                   <div className="max-h-60 overflow-y-auto space-y-2">
 
                     {notifications.length === 0 ? (
@@ -217,45 +272,44 @@ export const Header: React.FC<HeaderProps> = ({
                           : 'No new notifications.'}
                       </p>
                     ) : (
-                      notifications.map((n) => (
+                      notifications.map((notification) => (
                         <div
-                          key={n.id}
+                          key={notification.id}
                           onClick={() => {
                             if (onMarkNotificationRead) {
-                              onMarkNotificationRead(n.id);
+                              onMarkNotificationRead(
+                                notification.id
+                              );
                             }
 
-                            if (n.requestId) {
+                            if (notification.requestId) {
                               onOpenRequestsTab();
                             }
 
-                            setShowNotifications(false);
+                            closeNotifications();
                           }}
-                          className={`p-2.5 rounded-2xl text-xs transition-colors cursor-pointer border ${
-                            n.read
-                              ? 'bg-slate-50 border-slate-100 text-slate-600'
-                              : 'bg-emerald-50/70 border-emerald-200 text-slate-900 font-semibold'
-                          }`}
-                        > 
+                          className={notificationItemClass(
+                            notification.read
+                          )}
+                        >
 
                           <div className="font-bold flex items-center justify-between gap-1 text-slate-900">
 
-                            <span>
+                            <span className="min-w-0 truncate">
                               {language === 'hi'
-                                ? n.titleHi
-                                : n.title}
+                                ? notification.titleHi
+                                : notification.title}
                             </span>
 
                             <span className="text-[9px] text-slate-400 font-normal shrink-0">
-                              {n.timestamp}
+                              {notification.timestamp}
                             </span>
-
                           </div>
 
                           <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
                             {language === 'hi'
-                              ? n.messageHi
-                              : n.message}
+                              ? notification.messageHi
+                              : notification.message}
                           </p>
 
                         </div>
@@ -270,51 +324,61 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Slide-out Hamburger Menu */}
+      {/* =========================
+          MOBILE DRAWER
+      ========================== */}
       {isMobileMenuOpen && (
         <div
           id="hamburger-menu-overlay"
-          className="fixed inset-0 z-[100] bg-slate-950/65 backdrop-blur-xs flex justify-start items-stretch animate-in fade-in duration-200"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setIsMobileMenuOpen(false);
+          className="fixed inset-0 z-[100] bg-slate-950/65 backdrop-blur-sm flex justify-start items-stretch"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeMobileMenu();
             }
           }}
         >
 
+          {/* Drawer */}
           <div
             id="hamburger-menu-drawer"
-            className="w-80 max-w-[85vw] bg-white h-screen h-[100dvh] max-h-screen shadow-2xl flex flex-col justify-between animate-in slide-in-from-left duration-200 relative overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="w-80 max-w-[85vw] bg-white h-screen h-[100dvh] max-h-screen shadow-2xl flex flex-col relative overflow-hidden"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
           >
 
-            {/* Menu Header */}
+            {/* =========================
+                DRAWER HEADER
+            ========================== */}
             <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white z-10">
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
 
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white font-extrabold text-sm shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white font-extrabold text-sm shadow-xs shrink-0">
                   M
                 </div>
 
-                <div>
-                  <div className="text-xs font-black text-slate-900 tracking-tight">
-                    MOHALLA <span className="text-amber-500">PARTNER</span>
+                <div className="min-w-0">
+                  <div className="text-xs font-black text-slate-900 tracking-tight truncate">
+                    MOHALLA{' '}
+                    <span className="text-amber-500">
+                      PARTNER
+                    </span>
                   </div>
 
-                  <div className="text-[9px] text-amber-800 font-bold">
+                  <div className="text-[9px] text-amber-800 font-bold truncate">
                     {t.tagline}
                   </div>
                 </div>
 
               </div>
 
-              {/* Close Button */}
+              {/* CLOSE BUTTON */}
               <button
                 id="close-hamburger-menu-btn"
                 type="button"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-800 hover:text-rose-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs border border-slate-200"
+                onClick={closeMobileMenu}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-800 hover:text-rose-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs border border-slate-200 shrink-0"
                 aria-label="Close Menu"
               >
                 <X className="w-5 h-5 stroke-[2.5]" />
@@ -322,26 +386,32 @@ export const Header: React.FC<HeaderProps> = ({
 
             </div>
 
-            {/* Scrollable Provider Menu */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 py-3 space-y-3 overscroll-contain">
+            {/* =========================
+                SCROLLABLE CONTENT
+            ========================== */}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 py-3">
 
               {/* Partner Profile */}
-              <div
+              <button
+                type="button"
                 onClick={() => {
-                  setIsMobileMenuOpen(false);
+                  closeMobileMenu();
                   onOpenProfile();
                 }}
-                className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-amber-100/70 transition-colors"
+                className="w-full text-left bg-amber-50/80 border border-amber-200/90 rounded-2xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-amber-100/70 transition-colors"
               >
 
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
 
                   <div className="w-9 h-9 rounded-xl overflow-hidden bg-amber-300 ring-2 ring-amber-400 shrink-0">
 
                     {provider?.avatar ? (
                       <img
                         src={provider.avatar}
-                        alt={provider?.name || 'Partner'}
+                        alt={
+                          provider?.name ||
+                          'Partner'
+                        }
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -352,54 +422,73 @@ export const Header: React.FC<HeaderProps> = ({
 
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
 
                     <div className="text-xs font-black text-slate-900 truncate max-w-[140px]">
                       {language === 'hi'
-                        ? (provider?.nameHi || provider?.name)
-                        : provider?.name}
+                        ? (
+                            provider?.nameHi ||
+                            provider?.name ||
+                            'Partner'
+                          )
+                        : (
+                            provider?.name ||
+                            'Partner'
+                          )}
                     </div>
 
-                    <div className="text-[10px] text-amber-900 font-bold truncate max-w-[140px] flex items-center gap-1">
+                    <div className="text-[10px] text-amber-900 font-bold truncate max-w-[170px] flex items-center gap-1">
 
-                      <span>
+                      <span className="truncate">
                         {language === 'hi'
-                          ? (provider?.categoryNameHi || provider?.categoryName)
-                          : provider?.categoryName}
+                          ? (
+                              provider?.categoryNameHi ||
+                              provider?.categoryName ||
+                              'Service Partner'
+                            )
+                          : (
+                              provider?.categoryName ||
+                              'Service Partner'
+                            )}
                       </span>
 
                       <span>•</span>
 
-                      <span>
+                      <span className="shrink-0">
                         {isVerified
-                          ? '✓ Verified'
+                          ? language === 'hi'
+                            ? '✓ सत्यापित'
+                            : '✓ Verified'
                           : isPending
-                            ? '⏳ Pending'
-                            : '✕ Rejected'}
+                            ? language === 'hi'
+                              ? '⏳ लंबित'
+                              : '⏳ Pending'
+                            : language === 'hi'
+                              ? '✕ अस्वीकृत'
+                              : '✕ Rejected'}
                       </span>
 
                     </div>
-
                   </div>
                 </div>
 
-                <ArrowRight className="w-3.5 h-3.5 text-amber-600" />
+                <ArrowRight className="w-3.5 h-3.5 text-amber-600 shrink-0 ml-2" />
 
-              </div>
+              </button>
 
-              {/* Provider Menu Items */}
-              <div className="space-y-0.5 text-xs font-bold text-slate-700">
+              {/* Menu Items */}
+              <div className="mt-3 space-y-0.5 text-xs font-bold text-slate-700">
 
                 {/* Dashboard */}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onNavigate('provider_dashboard');
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <Home className="w-4 h-4 text-amber-600" />
+                  <Home className="w-4 h-4 text-amber-600 shrink-0" />
 
                   <span>
                     {language === 'hi'
@@ -412,16 +501,18 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenRequestsTab();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center justify-between text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center justify-between text-slate-800 cursor-pointer"
                 >
 
                   <div className="flex items-center gap-3">
-                    <ClipboardList className="w-4 h-4 text-amber-600" />
+                    <ClipboardList className="w-4 h-4 text-amber-600 shrink-0" />
 
-                    <span>{t.serviceRequests}</span>
+                    <span>
+                      {t.serviceRequests}
+                    </span>
                   </div>
 
                   {activeRequestsCount > 0 && (
@@ -436,14 +527,14 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     setShowNotifications(true);
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center justify-between text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center justify-between text-slate-800 cursor-pointer"
                 >
 
                   <div className="flex items-center gap-3">
-                    <Bell className="w-4 h-4 text-amber-600" />
+                    <Bell className="w-4 h-4 text-amber-600 shrink-0" />
 
                     <span>
                       {language === 'hi'
@@ -464,54 +555,60 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenProfile();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-emerald-700 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-emerald-700 cursor-pointer"
                 >
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
 
-                  <span>{t.verificationStatus}</span>
+                  <span>
+                    {t.verificationStatus}
+                  </span>
                 </button>
 
                 {/* Earnings & Payments */}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenPayments();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                  <CreditCard className="w-4 h-4 text-emerald-600 shrink-0" />
 
-                  <span>{t.earningsPayments}</span>
+                  <span>
+                    {t.earningsPayments}
+                  </span>
                 </button>
 
                 {/* Ratings & Reviews */}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenReviews();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <Star className="w-4 h-4 text-amber-500" />
+                  <Star className="w-4 h-4 text-amber-500 shrink-0" />
 
-                  <span>{t.ratingsReviews}</span>
+                  <span>
+                    {t.ratingsReviews}
+                  </span>
                 </button>
 
-                {/* Register Partner */}
+                {/* Register / Switch Partner */}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenJoinPro();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-amber-700 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-amber-700 cursor-pointer"
                 >
-                  <Users className="w-4 h-4 text-amber-600" />
+                  <Users className="w-4 h-4 text-amber-600 shrink-0" />
 
                   <span>
                     {language === 'hi'
@@ -524,25 +621,30 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenHelpSupport();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <span className="text-blue-600 text-base">?</span>
+                  <span className="w-4 h-4 flex items-center justify-center text-blue-600 text-base font-black">
+                    ?
+                  </span>
 
-                  <span>{t.helpSupport}</span>
+                  <span>
+                    {t.helpSupport}
+                  </span>
                 </button>
 
                 {/* Partner Helpline */}
                 <a
                   href="tel:18002026000"
-                  className="w-full text-left px-3 py-2 rounded-xl bg-amber-50/80 border border-amber-200/80 hover:bg-amber-100/80 flex items-center justify-between text-slate-900 cursor-pointer my-1"
+                  onClick={closeMobileMenu}
+                  className="w-full text-left px-3 py-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 hover:bg-amber-100/80 flex items-center justify-between text-slate-900 cursor-pointer my-1"
                 >
 
                   <div className="flex items-center gap-2.5">
 
-                    <PhoneCall className="w-4 h-4 text-amber-700" />
+                    <PhoneCall className="w-4 h-4 text-amber-700 shrink-0" />
 
                     <div>
                       <div className="text-xs font-black">
@@ -559,7 +661,9 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
 
                   <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-md">
-                    Call
+                    {language === 'hi'
+                      ? 'कॉल'
+                      : 'Call'}
                   </span>
 
                 </a>
@@ -568,48 +672,56 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenAbout();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <Info className="w-4 h-4 text-slate-500" />
+                  <Info className="w-4 h-4 text-slate-500 shrink-0" />
 
-                  <span>{t.aboutApp}</span>
+                  <span>
+                    {t.aboutApp}
+                  </span>
                 </button>
 
                 {/* Settings */}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onOpenSettings();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 flex items-center gap-3 text-slate-800 cursor-pointer"
                 >
-                  <Settings className="w-4 h-4 text-slate-600" />
+                  <Settings className="w-4 h-4 text-slate-600 shrink-0" />
 
-                  <span>{t.settings}</span>
+                  <span>
+                    {t.settings}
+                  </span>
                 </button>
 
                 {/* Logout */}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                     onLogout();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 flex items-center gap-3 text-rose-600 cursor-pointer"
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-rose-50 flex items-center gap-3 text-rose-600 cursor-pointer"
                 >
-                  <LogOut className="w-4 h-4 text-rose-500" />
+                  <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
 
-                  <span>{t.logout}</span>
+                  <span>
+                    {t.logout}
+                  </span>
                 </button>
 
               </div>
             </div>
 
-            {/* Bottom Indicator */}
+            {/* =========================
+                BOTTOM INDICATOR
+            ========================== */}
             <div className="py-2.5 px-4 border-t border-slate-100 bg-slate-50 text-center text-[10px] text-slate-400 font-semibold shrink-0">
               Mohalla Helpline Partner
             </div>
@@ -620,4 +732,3 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-```
