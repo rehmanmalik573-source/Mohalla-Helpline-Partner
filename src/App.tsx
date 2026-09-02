@@ -78,17 +78,117 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved) as ServiceRequest[];
 
-        // Keep older saved requests compatible with the new bilingual fields.
-        return parsed.map(req => ({
-          ...req,
-          serviceTypeHi: req.serviceTypeHi ?? req.serviceType,
-          problemDescriptionHi: req.problemDescriptionHi ?? req.problemDescription,
-          locationHi: req.locationHi ?? req.location,
-          preferredDateHi: req.preferredDateHi ?? req.preferredDate,
-          preferredTimeHi: req.preferredTimeHi ?? req.preferredTime,
-          createdAtHi: req.createdAtHi ?? req.createdAt,
-          updatedAtHi: req.updatedAtHi ?? req.updatedAt,
-        }));
+        /*
+         * Bilingual migration:
+         * Older saved requests may have Hindi text stored in the
+         * English fields. Fix the known demo requests while preserving
+         * their current status, price, customer, provider and other data.
+         */
+        const legacyRequestFixes: Record<string, Partial<ServiceRequest>> = {
+          'REQ-84920': {
+            serviceType: 'Pipe Leakage & Tap Repair',
+            serviceTypeHi: 'पाइप लीकेज व नल रिपेयर',
+            problemDescription:
+              'Water is continuously dripping from the bathroom tap. The main valve is also loose.',
+            problemDescriptionHi:
+              'बाथरूम के नल से लगातार पानी टपक रहा है। मुख्य वाल्व भी ढीला है।',
+            location: 'Lane No. 3, Shahdara, Delhi',
+            locationHi: 'गली नं. 3, शाहदरा, दिल्ली',
+            preferredDate: 'Today',
+            preferredDateHi: 'आज',
+            preferredTime: '11:00 AM - 01:00 PM',
+            preferredTimeHi: '11:00 AM - 01:00 PM',
+            createdAt: '10 minutes ago',
+            createdAtHi: '10 मिनट पहले',
+            updatedAt: '10 minutes ago',
+            updatedAtHi: '10 मिनट पहले'
+          },
+
+          'REQ-91044': {
+            serviceType: 'Wash Basin Drainage Blockage',
+            serviceTypeHi: 'वॉश बेसिन ड्रेनेज ब्लॉकेज',
+            problemDescription:
+              'The kitchen sink and wash basin are blocked. Immediate service is required.',
+            problemDescriptionHi:
+              'किचन सिंक और बेसिन का पानी रुक गया है। तुरंत समाधान चाहिए।',
+            location: 'Block B, Vivek Vihar, Delhi',
+            locationHi: 'ब्लॉक बी, विवेक विहार, दिल्ली',
+            preferredDate: 'Today',
+            preferredDateHi: 'आज',
+            preferredTime: '02:00 PM - 04:00 PM',
+            preferredTimeHi: '02:00 PM - 04:00 PM',
+            createdAt: '25 minutes ago',
+            createdAtHi: '25 मिनट पहले',
+            updatedAt: '15 minutes ago',
+            updatedAtHi: '15 मिनट पहले'
+          },
+
+          'REQ-73210': {
+            serviceType: 'Water Motor Installation',
+            serviceTypeHi: 'पानी की मोटर फिटिंग',
+            problemDescription:
+              'A new float valve and motor connection were required for the rooftop water tank.',
+            problemDescriptionHi:
+              'छत की पानी टंकी में नया फ्लोट वाल्व और मोटर कनेक्शन लगाना था।',
+            location: 'Lane No. 7, Shahdara, Delhi',
+            locationHi: 'गली नं. 7, शाहदरा, दिल्ली',
+            preferredDate: 'Tomorrow',
+            preferredDateHi: 'कल',
+            preferredTime: '04:00 PM - 06:00 PM',
+            preferredTimeHi: '04:00 PM - 06:00 PM',
+            createdAt: 'Yesterday',
+            createdAtHi: 'कल',
+            updatedAt: 'Yesterday',
+            updatedAtHi: 'कल'
+          }
+        };
+
+        const migratedRequests = parsed.map(req => {
+          const fix = legacyRequestFixes[req.id];
+
+          /*
+           * Known legacy demo requests receive their correct bilingual
+           * values. Other requests remain untouched except for filling
+           * missing bilingual fields from their existing values.
+           */
+          if (fix) {
+            return {
+              ...req,
+              ...fix
+            };
+          }
+
+          return {
+            ...req,
+            serviceType: req.serviceType || req.serviceTypeHi,
+            serviceTypeHi: req.serviceTypeHi || req.serviceType,
+            problemDescription:
+              req.problemDescription || req.problemDescriptionHi,
+            problemDescriptionHi:
+              req.problemDescriptionHi || req.problemDescription,
+            location: req.location || req.locationHi,
+            locationHi: req.locationHi || req.location,
+            preferredDate: req.preferredDate || req.preferredDateHi,
+            preferredDateHi: req.preferredDateHi || req.preferredDate,
+            preferredTime: req.preferredTime || req.preferredTimeHi,
+            preferredTimeHi: req.preferredTimeHi || req.preferredTime,
+            createdAt: req.createdAt || req.createdAtHi,
+            createdAtHi: req.createdAtHi || req.createdAt,
+            updatedAt: req.updatedAt || req.updatedAtHi,
+            updatedAtHi: req.updatedAtHi || req.updatedAt
+          };
+        });
+
+        /*
+         * Save the corrected bilingual data immediately so the fix
+         * remains available after refresh/reload.
+         */
+        localStorage.setItem(
+          'mohalla_partner_requests',
+          JSON.stringify(migratedRequests)
+        );
+
+        return migratedRequests;
       } catch (e) {
         // fallback
       }
@@ -233,6 +333,7 @@ export default function App() {
         updatedAtHi: 'कल',
 
         ratingGiven: 5,
+
         reviewGiven:
           'बहुत ही पेशेवर और समय के पाबंद कारीगर थे। काम समय पर पूरा किया।',
 
@@ -527,263 +628,4 @@ export default function App() {
         `नई सर्विस रिक्वेस्ट #${newReq.id} प्राप्त हुई! 🔔`,
 
       message:
-        `${newReq.serviceType} at ${newReq.location} - ₹${newReq.estimatedPrice}`,
-
-      messageHi:
-        `${newReq.locationHi} से ${newReq.serviceTypeHi} का ऑर्डर - ₹${newReq.estimatedPrice}`,
-
-      timestamp: 'Just now',
-      requestId: newReq.id,
-      read: false,
-      type: 'status_change'
-    };
-
-    setNotifications(prev => [newNotif, ...prev]);
-  };
-
-  const handleMarkNotificationRead = (id?: string) => {
-    if (!id) {
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, read: true }))
-      );
-    } else {
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === id
-            ? { ...n, read: true }
-            : n
-        )
-      );
-    }
-  };
-
-  return (
-    <div
-      id="mohalla-helpline-partner-app"
-      className="min-h-screen bg-slate-50/70 text-slate-900 font-sans flex flex-col selection:bg-amber-500 selection:text-white pb-20 sm:pb-8"
-    >
-      {/* 1. Dedicated Partner Top Sticky Header */}
-      <Header
-        language={language}
-        onToggleLanguage={handleToggleLanguage}
-        currentLocation={currentLocation}
-        onLocationChange={setCurrentLocation}
-        requests={requests}
-        provider={currentProvider}
-        notifications={notifications}
-
-        onNavigate={() => {
-          setCurrentTab('dashboard');
-        }}
-
-        onOpenRequestsTab={() => setCurrentTab('requests')}
-
-        onOpenProfile={() =>
-          setIsProfileModalOpen(true)
-        }
-
-        onOpenJoinPro={() =>
-          setIsJoinProModalOpen(true)
-        }
-
-        onOpenHelpSupport={() =>
-          setIsHelpSupportOpen(true)
-        }
-
-        onOpenPayments={() =>
-          setIsPaymentsModalOpen(true)
-        }
-
-        onOpenReviews={() =>
-          setIsReviewsModalOpen(true)
-        }
-
-        onOpenAbout={() =>
-          setIsAboutModalOpen(true)
-        }
-
-        onOpenSettings={() =>
-          setIsSettingsModalOpen(true)
-        }
-
-        onLogout={() => {
-          alert(
-            language === 'hi'
-              ? 'पार्टनर सेशन सक्रिय है।'
-              : 'Partner session is active.'
-          );
-        }}
-
-        onToggleOnline={() => {
-          if (currentProvider.verificationStatus === 'rejected') {
-            alert(
-              language === 'hi'
-                ? 'सत्यापन अस्वीकृत होने के कारण आप ऑनलाइन नहीं जा सकते। कृपया अपने दस्तावेज पुनः सबमिट करें।'
-                : 'Cannot go online: Account verification rejected. Please re-submit your KYC documents.'
-            );
-            return;
-          }
-
-          if (currentProvider.verificationStatus === 'pending') {
-            alert(
-              language === 'hi'
-                ? 'सत्यापन प्रक्रियाधीन है। एडमिन द्वारा स्वीकृति के बाद आप ऑनलाइन हो सकेंगे।'
-                : 'Verification is pending. You can go online once approved by Admin.'
-            );
-            return;
-          }
-
-          handleUpdateProvider({
-            isAvailableNow: !currentProvider.isAvailableNow
-          });
-        }}
-
-        onMarkNotificationRead={handleMarkNotificationRead}
-      />
-
-      {/* 2. Primary Partner Workspace & Dashboard */}
-      <main className="flex-1">
-        <ProviderDashboardView
-          provider={currentProvider}
-          requests={requests}
-          categories={categories}
-          language={language}
-          onUpdateStatus={handleUpdateStatus}
-          onUpdateProvider={handleUpdateProvider}
-          onSimulateNewRequest={handleSimulateNewRequest}
-          onOpenHelpSupport={() =>
-            setIsHelpSupportOpen(true)
-          }
-          onOpenProfileModal={() =>
-            setIsProfileModalOpen(true)
-          }
-          activeMainTab={currentTab}
-          onChangeMainTab={setCurrentTab}
-        />
-      </main>
-
-      {/* 3. Partner Profile, KYC, Document Verification & Test Profile Switcher Modal */}
-      <ProviderProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() =>
-          setIsProfileModalOpen(false)
-        }
-        provider={currentProvider}
-        allProviders={providers}
-        categories={categories}
-        language={language}
-        onUpdateProvider={handleUpdateProvider}
-        onSelectProvider={handleSelectProvider}
-        onOpenJoinPro={() =>
-          setIsJoinProModalOpen(true)
-        }
-      />
-
-      {/* 4. Partner Registration / Onboarding Modal */}
-      <JoinAsProModal
-        isOpen={isJoinProModalOpen}
-        onClose={() =>
-          setIsJoinProModalOpen(false)
-        }
-        categories={categories}
-        language={language}
-        onAddProvider={handleAddProvider}
-      />
-
-      {/* 5. Partner Earnings & Payout History Modal */}
-      <CustomerPaymentsModal
-        isOpen={isPaymentsModalOpen}
-        onClose={() =>
-          setIsPaymentsModalOpen(false)
-        }
-        requests={requests}
-        language={language}
-        userRole={userRole}
-        onSimulatePay={(reqId) => {
-          handleUpdateStatus(reqId, 'completed');
-        }}
-      />
-
-      {/* 6. Partner Ratings & Customer Reviews Modal */}
-      <CustomerReviewsModal
-        isOpen={isReviewsModalOpen}
-        onClose={() =>
-          setIsReviewsModalOpen(false)
-        }
-        requests={requests}
-        language={language}
-      />
-
-      {/* 7. Partner Helpline & Emergency Support Modal */}
-      <HelpSupportModal
-        isOpen={isHelpSupportOpen}
-        onClose={() =>
-          setIsHelpSupportOpen(false)
-        }
-        language={language}
-      />
-
-      {/* 8. About Mohalla Helpline Partner Modal */}
-      <AboutModal
-        isOpen={isAboutModalOpen}
-        onClose={() =>
-          setIsAboutModalOpen(false)
-        }
-        language={language}
-      />
-
-      {/* 9. Partner Settings Modal */}
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() =>
-          setIsSettingsModalOpen(false)
-        }
-        language={language}
-        onToggleLanguage={handleToggleLanguage}
-        userRole={userRole}
-        onOpenRoleModal={() => {}}
-      />
-
-      {/* 10. Partner Footer */}
-      <Footer
-        categories={categories}
-        language={language}
-        onSelectCategory={() =>
-          setCurrentTab('dashboard')
-        }
-        onOpenEmergency={() =>
-          setIsHelpSupportOpen(true)
-        }
-        onOpenJoinPro={() =>
-          setIsJoinProModalOpen(true)
-        }
-      />
-
-      {/* 11. Mobile-First Dedicated Partner Bottom Navigation Bar */}
-      <BottomNavBar
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
-        language={language}
-
-        activeRequestsCount={
-          requests.filter(
-            r =>
-              r.status === 'requested' ||
-              r.status === 'provider_found' ||
-              r.status === 'accepted' ||
-              r.status === 'on_the_way' ||
-              r.status === 'service_started'
-          ).length
-        }
-
-        onOpenProfile={() =>
-          setIsProfileModalOpen(true)
-        }
-
-        onOpenPayments={() =>
-          setIsPaymentsModalOpen(true)
-        }
-      />
-    </div>
-  );
-}
+        `${newReq.serviceType}
