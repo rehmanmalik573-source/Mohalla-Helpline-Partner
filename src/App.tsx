@@ -40,8 +40,10 @@ export default function App() {
 
   // 4. Partner categories & list of registered providers
   const [categories] = useState<Category[]>(initialCategories);
+
   const [providers, setProviders] = useState<Provider[]>(() => {
     const saved = localStorage.getItem('mohalla_providers');
+
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -49,32 +51,49 @@ export default function App() {
         // fallback
       }
     }
+
     return initialProviders;
   });
 
   // 5. Active logged-in provider profile
   const [currentProvider, setCurrentProvider] = useState<Provider>(() => {
     const savedId = localStorage.getItem('mohalla_current_provider_id');
+
     if (savedId) {
       const found = (initialProviders || []).find(p => p.id === savedId);
       if (found) return found;
     }
+
     return initialProviders[0];
   });
 
   // 6. Current locality
   const [currentLocation, setCurrentLocation] = useState<string>('शाहदरा, दिल्ली');
 
-  // 7. Service Requests State (Customer bookings received by providers)
+  // 7. Service Requests State
   const [requests, setRequests] = useState<ServiceRequest[]>(() => {
     const saved = localStorage.getItem('mohalla_partner_requests');
+
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved) as ServiceRequest[];
+
+        // Keep older saved requests compatible with the new bilingual fields.
+        return parsed.map(req => ({
+          ...req,
+          serviceTypeHi: req.serviceTypeHi ?? req.serviceType,
+          problemDescriptionHi: req.problemDescriptionHi ?? req.problemDescription,
+          locationHi: req.locationHi ?? req.location,
+          preferredDateHi: req.preferredDateHi ?? req.preferredDate,
+          preferredTimeHi: req.preferredTimeHi ?? req.preferredTime,
+          createdAtHi: req.createdAtHi ?? req.createdAt,
+          updatedAtHi: req.updatedAtHi ?? req.updatedAt,
+        }));
       } catch (e) {
         // fallback
       }
     }
+
     return [
       {
         id: 'REQ-84920',
@@ -84,15 +103,33 @@ export default function App() {
         categoryId: 1,
         categoryName: 'Plumber',
         categoryNameHi: 'प्लंबर',
-        serviceType: 'पाइप लीकेज व नल रिपेयर',
-        problemDescription: 'बाथरूम के नल से लगातार पानी टपक रहा है। मुख्य वाल्व भी ढीला है।',
-        location: 'गली नं. 3, शाहदरा, दिल्ली',
-        preferredDate: 'आज (Today)',
+
+        serviceType: 'Pipe Leakage & Tap Repair',
+        serviceTypeHi: 'पाइप लीकेज व नल रिपेयर',
+
+        problemDescription:
+          'Water is continuously dripping from the bathroom tap. The main valve is also loose.',
+        problemDescriptionHi:
+          'बाथरूम के नल से लगातार पानी टपक रहा है। मुख्य वाल्व भी ढीला है।',
+
+        location: 'Lane No. 3, Shahdara, Delhi',
+        locationHi: 'गली नं. 3, शाहदरा, दिल्ली',
+
+        preferredDate: 'Today',
+        preferredDateHi: 'आज',
+
         preferredTime: '11:00 AM - 01:00 PM',
+        preferredTimeHi: '11:00 AM - 01:00 PM',
+
         estimatedPrice: 249,
         status: 'requested',
-        createdAt: '10 मिनट पहले',
-        updatedAt: '10 मिनट पहले',
+
+        createdAt: '10 minutes ago',
+        createdAtHi: '10 मिनट पहले',
+
+        updatedAt: '10 minutes ago',
+        updatedAtHi: '10 मिनट पहले',
+
         assignedProvider: {
           id: 'p1',
           name: 'Rahul Sharma',
@@ -108,6 +145,7 @@ export default function App() {
           badge: 'Top Rated Pro'
         }
       },
+
       {
         id: 'REQ-91044',
         customerId: 'cust-102',
@@ -116,15 +154,33 @@ export default function App() {
         categoryId: 1,
         categoryName: 'Plumber',
         categoryNameHi: 'प्लंबर',
-        serviceType: 'वॉश बेसिन ड्रेनेज ब्लॉकेज',
-        problemDescription: 'किचन सिंक और बेसिन का पानी रुक गया है। तुरंत समाधान चाहिए।',
-        location: 'ब्लॉक बी, विवेक विहार, दिल्ली',
-        preferredDate: 'आज (Today)',
+
+        serviceType: 'Wash Basin Drainage Blockage',
+        serviceTypeHi: 'वॉश बेसिन ड्रेनेज ब्लॉकेज',
+
+        problemDescription:
+          'The kitchen sink and wash basin are blocked. Immediate service is required.',
+        problemDescriptionHi:
+          'किचन सिंक और बेसिन का पानी रुक गया है। तुरंत समाधान चाहिए।',
+
+        location: 'Block B, Vivek Vihar, Delhi',
+        locationHi: 'ब्लॉक बी, विवेक विहार, दिल्ली',
+
+        preferredDate: 'Today',
+        preferredDateHi: 'आज',
+
         preferredTime: '02:00 PM - 04:00 PM',
+        preferredTimeHi: '02:00 PM - 04:00 PM',
+
         estimatedPrice: 349,
         status: 'accepted',
-        createdAt: '25 मिनट पहले',
-        updatedAt: '15 मिनट पहले',
+
+        createdAt: '25 minutes ago',
+        createdAtHi: '25 मिनट पहले',
+
+        updatedAt: '15 minutes ago',
+        updatedAtHi: '15 मिनट पहले',
+
         assignedProvider: {
           id: 'p1',
           name: 'Rahul Sharma',
@@ -140,6 +196,7 @@ export default function App() {
           badge: 'Top Rated Pro'
         }
       },
+
       {
         id: 'REQ-73210',
         customerId: 'cust-103',
@@ -148,17 +205,37 @@ export default function App() {
         categoryId: 1,
         categoryName: 'Plumber',
         categoryNameHi: 'प्लंबर',
-        serviceType: 'पानी की मोटर फिटिंग',
-        problemDescription: 'छत की पानी टंकी में नया फ्लोट वाल्व और मोटर कनेक्शन लगाना था।',
-        location: 'गली नं. 7, शाहदरा, दिल्ली',
-        preferredDate: 'कल',
+
+        serviceType: 'Water Motor Installation',
+        serviceTypeHi: 'पानी की मोटर फिटिंग',
+
+        problemDescription:
+          'A new float valve and motor connection were required for the rooftop water tank.',
+        problemDescriptionHi:
+          'छत की पानी टंकी में नया फ्लोट वाल्व और मोटर कनेक्शन लगाना था।',
+
+        location: 'Lane No. 7, Shahdara, Delhi',
+        locationHi: 'गली नं. 7, शाहदरा, दिल्ली',
+
+        preferredDate: 'Tomorrow',
+        preferredDateHi: 'कल',
+
         preferredTime: '04:00 PM - 06:00 PM',
+        preferredTimeHi: '04:00 PM - 06:00 PM',
+
         estimatedPrice: 499,
         status: 'completed',
-        createdAt: 'कल',
-        updatedAt: 'कल',
+
+        createdAt: 'Yesterday',
+        createdAtHi: 'कल',
+
+        updatedAt: 'Yesterday',
+        updatedAtHi: 'कल',
+
         ratingGiven: 5,
-        reviewGiven: 'बहुत ही पेशेवर और समय के पाबंद कारीगर थे। काम समय पर पूरा किया।',
+        reviewGiven:
+          'बहुत ही पेशेवर और समय के पाबंद कारीगर थे। काम समय पर पूरा किया।',
+
         assignedProvider: {
           id: 'p1',
           name: 'Rahul Sharma',
@@ -230,6 +307,7 @@ export default function App() {
   // Handlers
   const handleToggleLanguage = (lang: Language) => {
     setLanguage(lang);
+
     if (lang === 'en' && currentLocation === 'शाहदरा, दिल्ली') {
       setCurrentLocation('Shahdara, Delhi');
     } else if (lang === 'hi' && currentLocation === 'Shahdara, Delhi') {
@@ -238,25 +316,50 @@ export default function App() {
   };
 
   const handleUpdateStatus = (id: string, newStatus: RequestStatus) => {
-    setRequests(prev => prev.map(req => {
-      if (req.id === id) {
-        return {
-          ...req,
-          status: newStatus,
-          updatedAt: 'Just now'
-        };
-      }
-      return req;
-    }));
+    setRequests(prev =>
+      prev.map(req => {
+        if (req.id === id) {
+          return {
+            ...req,
+            status: newStatus,
+            updatedAt: 'Just now',
+            updatedAtHi: 'अभी'
+          };
+        }
+
+        return req;
+      })
+    );
 
     const statusTitles: Record<RequestStatus, { en: string; hi: string }> = {
-      requested: { en: 'Request Received', hi: 'रिक्वेस्ट प्राप्त हुई' },
-      provider_found: { en: 'Order Assigned 🔍', hi: 'ऑर्डर असाइन हुआ 🔍' },
-      accepted: { en: 'Job Accepted 🤝', hi: 'काम स्वीकार हुआ 🤝' },
-      on_the_way: { en: 'Marked On The Way 🛵', hi: 'रास्ते में निकलें 🛵' },
-      service_started: { en: 'Service In Progress ⚡', hi: 'काम शुरू हुआ ⚡' },
-      completed: { en: 'Job Completed & Paid! ✓', hi: 'काम पूरा व भुगतान प्राप्त! ✓' },
-      cancelled: { en: 'Job Cancelled / Declined ✕', hi: 'काम रद्द / अस्वीकृत' },
+      requested: {
+        en: 'Request Received',
+        hi: 'रिक्वेस्ट प्राप्त हुई'
+      },
+      provider_found: {
+        en: 'Order Assigned 🔍',
+        hi: 'ऑर्डर असाइन हुआ 🔍'
+      },
+      accepted: {
+        en: 'Job Accepted 🤝',
+        hi: 'काम स्वीकार हुआ 🤝'
+      },
+      on_the_way: {
+        en: 'Marked On The Way 🛵',
+        hi: 'रास्ते में निकलें 🛵'
+      },
+      service_started: {
+        en: 'Service In Progress ⚡',
+        hi: 'काम शुरू हुआ ⚡'
+      },
+      completed: {
+        en: 'Job Completed & Paid! ✓',
+        hi: 'काम पूरा व भुगतान प्राप्त! ✓'
+      },
+      cancelled: {
+        en: 'Job Cancelled / Declined ✕',
+        hi: 'काम रद्द / अस्वीकृत'
+      },
     };
 
     const notifItem: CustomerNotification = {
@@ -270,13 +373,18 @@ export default function App() {
       read: false,
       type: 'status_change'
     };
+
     setNotifications(prev => [notifItem, ...prev]);
   };
 
   const handleUpdateProvider = (updated: Partial<Provider>) => {
     setCurrentProvider(prev => {
       const next = { ...prev, ...updated };
-      setProviders(all => all.map(p => p.id === prev.id ? next : p));
+
+      setProviders(all =>
+        all.map(p => p.id === prev.id ? next : p)
+      );
+
       return next;
     });
   };
@@ -293,51 +401,104 @@ export default function App() {
   const handleSimulateNewRequest = () => {
     const sampleProblems = [
       {
-        serviceType: 'किचन सिंक लीकेज व पाइप रिपेयर',
-        desc: 'किचन सिंक के नीचे से पानी रिस रहा है। पाइप बदलना पड़ सकता है।',
+        serviceType: 'Kitchen Sink Leakage & Pipe Repair',
+        serviceTypeHi: 'किचन सिंक लीकेज व पाइप रिपेयर',
+
+        desc:
+          'Water is leaking from under the kitchen sink. The pipe may need replacement.',
+        descHi:
+          'किचन सिंक के नीचे से पानी रिस रहा है। पाइप बदलना पड़ सकता है।',
+
         price: 299,
-        loc: 'गली नं. 5, शाहदरा, दिल्ली',
+
+        loc: 'Lane No. 5, Shahdara, Delhi',
+        locHi: 'गली नं. 5, शाहदरा, दिल्ली',
+
         cust: 'सुनीता शर्मा (Sunita Sharma)',
         phone: '+91 98765 99887'
       },
+
       {
-        serviceType: 'गीजर इंस्टालेशन व प्लंबिंग चेक',
-        desc: 'नया 15L का गीजर फिट करना है और इनलेट/आउटलेट कनेक्शन जोड़ना है।',
+        serviceType: 'Geyser Installation & Plumbing Check',
+        serviceTypeHi: 'गीजर इंस्टालेशन व प्लंबिंग चेक',
+
+        desc:
+          'Need to install a new 15L geyser and connect the inlet/outlet pipes.',
+        descHi:
+          'नया 15L का गीजर फिट करना है और इनलेट/आउटलेट कनेक्शन जोड़ना है।',
+
         price: 399,
-        loc: 'ब्लॉक सी, विवेक विहार, दिल्ली',
+
+        loc: 'Block C, Vivek Vihar, Delhi',
+        locHi: 'ब्लॉक सी, विवेक विहार, दिल्ली',
+
         cust: 'दीपक वर्मा (Deepak Verma)',
         phone: '+91 98111 88776'
       },
+
       {
-        serviceType: 'वॉटर मोटर रिपेयर व वाल्व बदलना',
-        desc: 'पानी की मोटर पानी नहीं उठा रही। चेक वाल्व बदलना होगा।',
+        serviceType: 'Water Motor Repair & Valve Replacement',
+        serviceTypeHi: 'वॉटर मोटर रिपेयर व वाल्व बदलना',
+
+        desc:
+          'The water motor is not lifting water. The check valve needs replacement.',
+        descHi:
+          'पानी की मोटर पानी नहीं उठा रही। चेक वाल्व बदलना होगा।',
+
         price: 449,
-        loc: 'ईस्ट आजाद नगर, दिल्ली',
+
+        loc: 'East Azad Nagar, Delhi',
+        locHi: 'ईस्ट आजाद नगर, दिल्ली',
+
         cust: 'मनोज कुमार (Manoj Kumar)',
         phone: '+91 98990 44332'
       }
     ];
 
-    const randomPick = sampleProblems[Math.floor(Math.random() * sampleProblems.length)];
-    const newReqId = 'REQ-' + Math.floor(10000 + Math.random() * 90000);
+    const randomPick =
+      sampleProblems[Math.floor(Math.random() * sampleProblems.length)];
+
+    const newReqId =
+      'REQ-' + Math.floor(10000 + Math.random() * 90000);
 
     const newReq: ServiceRequest = {
       id: newReqId,
-      customerId: 'cust-' + Math.floor(100 + Math.random() * 900),
+
+      customerId:
+        'cust-' + Math.floor(100 + Math.random() * 900),
+
       customerName: randomPick.cust,
       customerPhone: randomPick.phone,
+
       categoryId: currentProvider.categoryId || 1,
       categoryName: currentProvider.categoryName || 'Plumber',
       categoryNameHi: currentProvider.categoryNameHi || 'प्लंबर',
+
       serviceType: randomPick.serviceType,
+      serviceTypeHi: randomPick.serviceTypeHi,
+
       problemDescription: randomPick.desc,
+      problemDescriptionHi: randomPick.descHi,
+
       location: randomPick.loc,
-      preferredDate: 'आज (Today)',
+      locationHi: randomPick.locHi,
+
+      preferredDate: 'Today',
+      preferredDateHi: 'आज',
+
       preferredTime: 'Next 30 Mins',
+      preferredTimeHi: 'अगले 30 मिनट',
+
       estimatedPrice: randomPick.price,
+
       status: 'requested',
+
       createdAt: 'Just now',
+      createdAtHi: 'अभी',
+
       updatedAt: 'Just now',
+      updatedAtHi: 'अभी',
+
       assignedProvider: {
         id: currentProvider.id,
         name: currentProvider.name,
@@ -358,28 +519,46 @@ export default function App() {
 
     const newNotif: CustomerNotification = {
       id: 'notif-' + Date.now(),
-      title: `New Service Request #${newReq.id} Received! 🔔`,
-      titleHi: `नई सर्विस रिक्वेस्ट #${newReq.id} प्राप्त हुई! 🔔`,
-      message: `${newReq.serviceType} at ${newReq.location} - ₹${newReq.estimatedPrice}`,
-      messageHi: `${newReq.location} से ${newReq.serviceType} का ऑर्डर - ₹${newReq.estimatedPrice}`,
+
+      title:
+        `New Service Request #${newReq.id} Received! 🔔`,
+
+      titleHi:
+        `नई सर्विस रिक्वेस्ट #${newReq.id} प्राप्त हुई! 🔔`,
+
+      message:
+        `${newReq.serviceType} at ${newReq.location} - ₹${newReq.estimatedPrice}`,
+
+      messageHi:
+        `${newReq.locationHi} से ${newReq.serviceTypeHi} का ऑर्डर - ₹${newReq.estimatedPrice}`,
+
       timestamp: 'Just now',
       requestId: newReq.id,
       read: false,
       type: 'status_change'
     };
+
     setNotifications(prev => [newNotif, ...prev]);
   };
 
   const handleMarkNotificationRead = (id?: string) => {
     if (!id) {
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, read: true }))
+      );
     } else {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === id
+            ? { ...n, read: true }
+            : n
+        )
+      );
     }
   };
 
   return (
-    <div 
+    <div
       id="mohalla-helpline-partner-app"
       className="min-h-screen bg-slate-50/70 text-slate-900 font-sans flex flex-col selection:bg-amber-500 selection:text-white pb-20 sm:pb-8"
     >
@@ -392,20 +571,49 @@ export default function App() {
         requests={requests}
         provider={currentProvider}
         notifications={notifications}
+
         onNavigate={() => {
           setCurrentTab('dashboard');
         }}
+
         onOpenRequestsTab={() => setCurrentTab('requests')}
-        onOpenProfile={() => setIsProfileModalOpen(true)}
-        onOpenJoinPro={() => setIsJoinProModalOpen(true)}
-        onOpenHelpSupport={() => setIsHelpSupportOpen(true)}
-        onOpenPayments={() => setIsPaymentsModalOpen(true)}
-        onOpenReviews={() => setIsReviewsModalOpen(true)}
-        onOpenAbout={() => setIsAboutModalOpen(true)}
-        onOpenSettings={() => setIsSettingsModalOpen(true)}
+
+        onOpenProfile={() =>
+          setIsProfileModalOpen(true)
+        }
+
+        onOpenJoinPro={() =>
+          setIsJoinProModalOpen(true)
+        }
+
+        onOpenHelpSupport={() =>
+          setIsHelpSupportOpen(true)
+        }
+
+        onOpenPayments={() =>
+          setIsPaymentsModalOpen(true)
+        }
+
+        onOpenReviews={() =>
+          setIsReviewsModalOpen(true)
+        }
+
+        onOpenAbout={() =>
+          setIsAboutModalOpen(true)
+        }
+
+        onOpenSettings={() =>
+          setIsSettingsModalOpen(true)
+        }
+
         onLogout={() => {
-          alert(language === 'hi' ? 'पार्टनर सेशन सक्रिय है।' : 'Partner session is active.');
+          alert(
+            language === 'hi'
+              ? 'पार्टनर सेशन सक्रिय है।'
+              : 'Partner session is active.'
+          );
         }}
+
         onToggleOnline={() => {
           if (currentProvider.verificationStatus === 'rejected') {
             alert(
@@ -415,6 +623,7 @@ export default function App() {
             );
             return;
           }
+
           if (currentProvider.verificationStatus === 'pending') {
             alert(
               language === 'hi'
@@ -423,8 +632,12 @@ export default function App() {
             );
             return;
           }
-          handleUpdateProvider({ isAvailableNow: !currentProvider.isAvailableNow });
+
+          handleUpdateProvider({
+            isAvailableNow: !currentProvider.isAvailableNow
+          });
         }}
+
         onMarkNotificationRead={handleMarkNotificationRead}
       />
 
@@ -438,8 +651,12 @@ export default function App() {
           onUpdateStatus={handleUpdateStatus}
           onUpdateProvider={handleUpdateProvider}
           onSimulateNewRequest={handleSimulateNewRequest}
-          onOpenHelpSupport={() => setIsHelpSupportOpen(true)}
-          onOpenProfileModal={() => setIsProfileModalOpen(true)}
+          onOpenHelpSupport={() =>
+            setIsHelpSupportOpen(true)
+          }
+          onOpenProfileModal={() =>
+            setIsProfileModalOpen(true)
+          }
           activeMainTab={currentTab}
           onChangeMainTab={setCurrentTab}
         />
@@ -448,20 +665,26 @@ export default function App() {
       {/* 3. Partner Profile, KYC, Document Verification & Test Profile Switcher Modal */}
       <ProviderProfileModal
         isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
+        onClose={() =>
+          setIsProfileModalOpen(false)
+        }
         provider={currentProvider}
         allProviders={providers}
         categories={categories}
         language={language}
         onUpdateProvider={handleUpdateProvider}
         onSelectProvider={handleSelectProvider}
-        onOpenJoinPro={() => setIsJoinProModalOpen(true)}
+        onOpenJoinPro={() =>
+          setIsJoinProModalOpen(true)
+        }
       />
 
       {/* 4. Partner Registration / Onboarding Modal */}
       <JoinAsProModal
         isOpen={isJoinProModalOpen}
-        onClose={() => setIsJoinProModalOpen(false)}
+        onClose={() =>
+          setIsJoinProModalOpen(false)
+        }
         categories={categories}
         language={language}
         onAddProvider={handleAddProvider}
@@ -470,7 +693,9 @@ export default function App() {
       {/* 5. Partner Earnings & Payout History Modal */}
       <CustomerPaymentsModal
         isOpen={isPaymentsModalOpen}
-        onClose={() => setIsPaymentsModalOpen(false)}
+        onClose={() =>
+          setIsPaymentsModalOpen(false)
+        }
         requests={requests}
         language={language}
         userRole={userRole}
@@ -482,7 +707,9 @@ export default function App() {
       {/* 6. Partner Ratings & Customer Reviews Modal */}
       <CustomerReviewsModal
         isOpen={isReviewsModalOpen}
-        onClose={() => setIsReviewsModalOpen(false)}
+        onClose={() =>
+          setIsReviewsModalOpen(false)
+        }
         requests={requests}
         language={language}
       />
@@ -490,21 +717,27 @@ export default function App() {
       {/* 7. Partner Helpline & Emergency Support Modal */}
       <HelpSupportModal
         isOpen={isHelpSupportOpen}
-        onClose={() => setIsHelpSupportOpen(false)}
+        onClose={() =>
+          setIsHelpSupportOpen(false)
+        }
         language={language}
       />
 
       {/* 8. About Mohalla Helpline Partner Modal */}
       <AboutModal
         isOpen={isAboutModalOpen}
-        onClose={() => setIsAboutModalOpen(false)}
+        onClose={() =>
+          setIsAboutModalOpen(false)
+        }
         language={language}
       />
 
       {/* 9. Partner Settings Modal */}
       <SettingsModal
         isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
+        onClose={() =>
+          setIsSettingsModalOpen(false)
+        }
         language={language}
         onToggleLanguage={handleToggleLanguage}
         userRole={userRole}
@@ -515,9 +748,15 @@ export default function App() {
       <Footer
         categories={categories}
         language={language}
-        onSelectCategory={() => setCurrentTab('dashboard')}
-        onOpenEmergency={() => setIsHelpSupportOpen(true)}
-        onOpenJoinPro={() => setIsJoinProModalOpen(true)}
+        onSelectCategory={() =>
+          setCurrentTab('dashboard')
+        }
+        onOpenEmergency={() =>
+          setIsHelpSupportOpen(true)
+        }
+        onOpenJoinPro={() =>
+          setIsJoinProModalOpen(true)
+        }
       />
 
       {/* 11. Mobile-First Dedicated Partner Bottom Navigation Bar */}
@@ -525,13 +764,25 @@ export default function App() {
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
         language={language}
+
         activeRequestsCount={
           requests.filter(
-            r => r.status === 'requested' || r.status === 'provider_found' || r.status === 'accepted' || r.status === 'on_the_way' || r.status === 'service_started'
+            r =>
+              r.status === 'requested' ||
+              r.status === 'provider_found' ||
+              r.status === 'accepted' ||
+              r.status === 'on_the_way' ||
+              r.status === 'service_started'
           ).length
         }
-        onOpenProfile={() => setIsProfileModalOpen(true)}
-        onOpenPayments={() => setIsPaymentsModalOpen(true)}
+
+        onOpenProfile={() =>
+          setIsProfileModalOpen(true)
+        }
+
+        onOpenPayments={() =>
+          setIsPaymentsModalOpen(true)
+        }
       />
     </div>
   );
