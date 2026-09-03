@@ -627,8 +627,7 @@ export default function App() {
       titleHi:
         `नई सर्विस रिक्वेस्ट #${newReq.id} प्राप्त हुई! 🔔`,
 
-      message:
-        message:
+message:
   `${newReq.serviceType} at ${newReq.location} - ₹${newReq.estimatedPrice}`,
 
 messageHi:
