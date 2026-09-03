@@ -628,4 +628,8 @@ export default function App() {
         `नई सर्विस रिक्वेस्ट #${newReq.id} प्राप्त हुई! 🔔`,
 
       message:
-        `${newReq.serviceType}
+        message:
+  `${newReq.serviceType} at ${newReq.location} - ₹${newReq.estimatedPrice}`,
+
+messageHi:
+  `${newReq.locationHi} से ${newReq.serviceTypeHi} का ऑर्डर - ₹${newReq.estimatedPrice}`,
